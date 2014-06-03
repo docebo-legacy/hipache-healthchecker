@@ -3,18 +3,17 @@ hipache-healtchecker
 
 a ruby based health checker POC for @Dotcloud Hipache, based upon @Celluloid
 
-INSTALLATION
-================
-:\>git clone https://github.com/docebo/hipache-healthchecker
-:\>cd hipache-healthchecker
-:\hipache-healthchecker>bundle install
+# INSTALLATION
 
-USAGE
-======
-:\hipache-healthchecker> ruby hipache-healthcheck.rb
+	git clone https://github.com/docebo/hipache-healthchecker
+	cd hipache-healthchecker
+	hipache-healthchecker> bundle install
 
-TODO
-========
+# USAGE
+
+	hipache-healthchecker> ruby hipache-healthcheck.rb
+
+# TODO
 
 - write better doc
 - some params would be nice
