@@ -11,7 +11,9 @@ a ruby based health checker POC for @Dotcloud Hipache, based upon @Celluloid
 
 # USAGE
 
-	hipache-healthchecker> ruby hipache-healthcheck.rb
+	hipache-healthchecker> foreman start
+
+if you don't want to use hipache_healtchecker.rb active checker, and simply rely on Hipache (nginx version) dead backends announcments, edit Procfile and comment the line beggining with "checker:"
 
 # TODO
 

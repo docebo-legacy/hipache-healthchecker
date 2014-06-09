@@ -1,6 +1,4 @@
 #!/usr/bin/env ruby
-#
-# Run this as: bundle exec examples/echo_server.rb
 
 require 'bundler/setup'
 require 'celluloid/io'
@@ -25,27 +23,29 @@ class Checker
 	end
 end
 
+
 class HHCheck
   include Celluloid::IO
   finalizer :finalize
   def initialize(host, port)
     puts "*** Starting connect to redis on #{host}:#{port}"
-    @red = Redis.new(:host => host, :port => port)
+    @red = Redis.new(:driver => :celluloid)
     async.run
   end
 
   def finalize
+    @red.quit if @red
   end
 
   def run
-	loop { async.healthcheck; sleep 2 }
+	loop { async.healthcheck; sleep 10 }
   end
 
   def healthcheck()
 	f = @red.keys('frontend:*')
 	f.each do |frontend|
-		b = @red.lrange(frontend,'1','-1')
-			b.each_with_index do |backend, index|
+		b = @red.lrange(frontend,'0','-1')
+			b.drop(1).each_with_index do |backend, index|
 				begin
 				check = Checker.new
 				p "checking #{backend}"
@@ -54,14 +54,14 @@ class HHCheck
 					if response == false
 						then
 							p "#{backend} => DOWN"
-							@red.sadd('dead:' + frontend.gsub('frontend:',''),index + 1)
+							@red.publish('dead',frontend.gsub('frontend:','') + ';' + backend + ";" + index.to_s + ";" + b.size.to_s )
 						else
 						if response.status.to_s =~ /20\d/ then
 							p "#{backend} => #{response.status} => UP"
-							@red.srem('dead:' + frontend.gsub('frontend:',''),index + 1)
+							@red.srem('dead:' + frontend.gsub('frontend:',''),index)
 						else	
 							p "#{backend} => #{response.status} => DOWN"
-							@red.sadd('dead:' + frontend.gsub('frontend:',''),index + 1)
+							@red.publish('dead',frontend.gsub('frontend:','') + ';' + backend + ";" + index.to_s + ";" + b.size.to_s )
 					end
 					end
 				end
@@ -70,7 +70,6 @@ class HHCheck
 	end
   end
 end
-
-supervisor = HHCheck.supervise("127.0.0.1", 6379)
-trap("INT") { supervisor.terminate; exit }
+healthcheck = HHCheck.supervise("127.0.0.1", 6379)
+trap("INT") { healthcheck.terminate; exit }
 sleep
